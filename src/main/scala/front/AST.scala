@@ -1,7 +1,5 @@
 package front
 
-import scala.collection.mutable
-
 object AST {
 
   trait Node
@@ -19,10 +17,6 @@ object AST {
 
   case class Ident(name: String) extends Expression
 
-  case class Symbol(name: String, value: Int) extends AST.Expression {
-    Symbol.table.update(name, AST.Number(value))
-  }
-
   sealed abstract class Arithmetic(operator: String, left: AST.Expression, right: AST.Expression) extends Expression
 
   case class Addition(left: AST.Expression, right: AST.Expression) extends Arithmetic("+", left, right)
@@ -32,9 +26,5 @@ object AST {
   case class Multiplication(left: AST.Expression, right: AST.Expression) extends Arithmetic("*", left, right)
 
   case class Division(left: AST.Expression, right: AST.Expression) extends Arithmetic("/", left, right)
-
-  object Symbol {
-    val table: mutable.Map[String, AST.Number] = mutable.Map()
-  }
 
 }
