@@ -13,12 +13,17 @@ object Application {
         |  val value = price - result
         |  val multiplication = 1 * 3 * 4
         |  val division = 20 / 3
+        |  val blockValue = { 12 }
         |
+        |  print({
+        |    blockValue
+        |    1
+        |  })
         |  print(division)
         |  print(1 + 1 + 2)
         |
         |""".stripMargin)
-      .map(MipsGenerator.generate)
+      .map(MipsGenerator.generateMain)
       .get
       .map(_.genMips)
       .filter(_.nonEmpty)

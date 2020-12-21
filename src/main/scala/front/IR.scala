@@ -60,8 +60,8 @@ object IR {
          |""".stripMargin
   }
 
-  case class PrintInt(expr: IR.Mips) extends Mips {
-    override def genMips: String = expr.genMips +
+  case class PrintInt(expr: List[IR.Mips]) extends Mips {
+    override def genMips: String = expr.map(_.genMips).mkString("\n") +
       s"""  ${pop("$t0")}
          |  li  $$v0, 1
          |  move $$a0, $$t0
@@ -84,12 +84,12 @@ object IR {
          |""".stripMargin
   }
 
-  abstract sealed class Arithmetic(left: IR.Mips, right: IR.Mips) extends Mips {
+  abstract sealed class Arithmetic(left: List[IR.Mips], right: List[IR.Mips]) extends Mips {
     val operand: String
 
     val destRegister: String
 
-    override def genMips: String = left.genMips + right.genMips +
+    override def genMips: String = left.map(_.genMips).mkString("\n") + right.map(_.genMips).mkString("\n") +
       s"""  ${pop("$t1")}
          |  ${pop("$t2")}
          |
@@ -99,22 +99,22 @@ object IR {
          |""".stripMargin
   }
 
-  case class Addition(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+  case class Addition(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
     override val operand: String = "add"
     override val destRegister: String = "$s0"
   }
 
-  case class Subtraction(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+  case class Subtraction(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
     override val operand: String = "sub"
     override val destRegister: String = "$s0"
   }
 
-  case class Multiplication(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+  case class Multiplication(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
     override val operand: String = "mul"
     override val destRegister: String = "$s0"
   }
 
-  case class Division(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+  case class Division(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
     override val operand: String = "div"
     override val destRegister: String = "$s0"
   }

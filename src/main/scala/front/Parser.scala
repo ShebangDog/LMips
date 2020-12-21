@@ -13,8 +13,12 @@ object Parser extends JavaTokenParsers {
   def stmt: Parser[AST.Statement] = decl | print
 
   def decl: Parser[AST.Statement] = ("val" ~> ident) ~ ("=" ~> expr) ^^ {
-    case name ~ expr => AST.Declare(Ident(name), expr)
-  }
+    case name ~ expr => AST.DeclareValue(Ident(name), expr)
+  } |
+    ("def" ~> ident) ~ opt(param) ~ ("=" ~> expr) ^^ {
+      case name ~ None ~ expr => AST.DeclareFunction(Ident(name), List(), expr)
+      case name ~ Some(param) ~ expr => AST.DeclareFunction(Ident(name), param, expr)
+    }
 
   def print: Parser[AST.Statement] = "print" ~> ("(" ~> expr <~ ")") ^^ AST.Println
 
@@ -35,6 +39,15 @@ object Parser extends JavaTokenParsers {
   }
 
   def fact: Parser[AST.Expression] = "(" ~> expr <~ ")" |
+    "{" ~> rep(stmt | expr) <~ "}" ^^ AST.Block |
     wholeNumber ^^ { num => AST.Number(num.toInt) } |
     ident ^^ AST.Ident
+
+  def param: Parser[List[AST.Ident]] = "(" ~> opt(ident ~ rep("," ~> ident)) <~ ")" ^^ {
+    case None => List()
+    case Some(head ~ rest) => (rest match {
+      case ::(head, next) => head :: next
+      case Nil => List(head)
+    }).map(AST.Ident)
+  }
 }
