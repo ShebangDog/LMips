@@ -46,8 +46,8 @@ object Parser extends JavaTokenParsers {
   def param: Parser[List[AST.Ident]] = "(" ~> opt(ident ~ rep("," ~> ident)) <~ ")" ^^ {
     case None => List()
     case Some(head ~ rest) => (rest match {
-      case ::(head, next) => head :: next
       case Nil => List(head)
+      case head :: tail => head :: rest
     }).map(AST.Ident)
   }
 }
