@@ -1,5 +1,7 @@
 package front
 
+import table.Table
+
 object IR {
 
   trait Mips {
@@ -19,6 +21,7 @@ object IR {
         |  .globl main
         |
         |main:
+        |   move  $fp,  $sp
         |""".stripMargin
   }
 
@@ -33,19 +36,24 @@ object IR {
     override def genMips: String = ""
   }
 
-  case class Declare(ident: String, scope: Scope) extends Mips {
-    override def genMips: String =
-      s"""  .globl $ident
-         |
-         |$ident: .word 0
-         |""".stripMargin
+  case class Declare(ident: String, value: List[IR.Mips]) extends Mips {
+    Table.store(ident)
+
+    override def genMips: String = {
+      val register = "$s0"
+
+      List(
+        value.map(_.genMips).mkString("\n"),
+        pop(register),
+        Store(ident, register).genMips
+      ).mkString("\n")
+    }
   }
 
-  case class Store(name: String) extends Mips {
+  case class Store(name: String, rightValue: String) extends Mips {
     override def genMips: String =
-      s"""  la  $$t0, $name
-         |  ${pop("$t1")}
-         |  sw  $$t1, 0($$t0)
+      s"""
+         |  sw  $rightValue, ${Table.load(name).get}($$sp)
          |
          |""".stripMargin
   }
@@ -78,9 +86,8 @@ object IR {
 
   case class Ident(name: String) extends Mips {
     override def genMips: String =
-      s"""  la $$t0, $name
-         |  lw $$t1, 0($$t0)
-         |  ${push("$t1")}
+      s"""  ${load("$t0", name)}
+         |  ${push("$t0")}
          |""".stripMargin
   }
 
@@ -91,12 +98,12 @@ object IR {
 
     override def genMips: String = left.map(_.genMips).mkString("\n") + right.map(_.genMips).mkString("\n") +
       s"""  ${pop("$t1")}
+         |
          |  ${pop("$t2")}
          |
          |  $operand $destRegister, $$t2, $$t1
          |
-         |  ${push(destRegister)}
-         |""".stripMargin
+         |  ${push(destRegister)}""".stripMargin
   }
 
   case class Addition(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
@@ -132,10 +139,12 @@ object IR {
   private def push(name: String): String =
     s"""sub  $$sp, $$sp, 4
        |  sw  $name, 0($$sp)
-       |""".stripMargin
+       |  """.stripMargin
 
   private def pop(name: String): String =
     s"""lw $name, 0($$sp)
        |  addiu $$sp, $$sp, 4
-       |""".stripMargin
+       |  """.stripMargin
+
+  private def load(register: String, name: String): String = s"""lw  $register,  ${Table.load(name).get}($$fp)""".stripMargin
 }

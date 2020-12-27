@@ -4,12 +4,9 @@ import front.{AST, IR}
 
 object MipsGenerator {
   def generateMain(nodeList: List[AST.Node]): List[IR.Mips] = {
-    val (declare, rest) = generateProgram(nodeList).partition {
-      case IR.Declare(_, _) => true
-      case _ => false
-    }
+    val list = generateProgram(nodeList)
 
-    (IR.Data :: declare) ::: ((IR.Header :: rest) :+ IR.Footer)
+    (IR.Header :: list) :+ IR.Footer
   }
 
   def generate(nodeList: List[AST.Node]): List[IR.Mips] = {
@@ -27,8 +24,7 @@ object MipsGenerator {
   }
 
   def generateStatement(statement: AST.Statement): List[IR.Mips] = statement match {
-    case AST.DeclareValue(identity, expr) =>
-      (IR.Declare(identity.name, IR.Global) :: generateExpression(expr)) :+ IR.Store(identity.name)
+    case AST.DeclareValue(identity, expr) => List(IR.Declare(identity.name, generateExpression(expr)))
 
     case AST.Println(expr) => List(IR.PrintInt(generateExpression(expr)))
 
