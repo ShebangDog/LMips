@@ -10,62 +10,51 @@ object IR {
 
   trait Section extends Mips
 
-  case object Data extends Section {
-    override def genMips: String = "  .data"
-  }
-
-  case object Header extends Mips {
-    override def genMips: String =
-      """
-        |  .text
-        |  .globl main
-        |
-        |main:
-        |   move  $fp,  $sp
-        |""".stripMargin
-  }
-
-  case object Footer extends Mips {
-    override def genMips: String =
-      """  li $v0, 0
-        |  jr $ra
-        |""".stripMargin
+  case object Text extends Section {
+    override def genMips: String = "  .text"
   }
 
   case object None extends Mips {
     override def genMips: String = ""
   }
 
-  case class Declare(ident: String, value: List[IR.Mips]) extends Mips {
+  case class DeclareValue(ident: String, value: List[IR.Mips]) extends Mips {
     Table.store(ident)
 
-    override def genMips: String = {
-      val register = "$s0"
-
-      List(
-        value.map(_.genMips).mkString("\n"),
-        pop(register),
-        Store(ident, register).genMips
-      ).mkString("\n")
-    }
+    override def genMips: String = value.map(_.genMips).mkString("\n")
   }
 
-  case class Store(name: String, rightValue: String) extends Mips {
-    override def genMips: String =
-      s"""
-         |  sw  $rightValue, ${Table.load(name).get}($$sp)
+  case class DeclareFunction(ident: String, value: List[IR.Mips]) extends Mips {
+
+    override def genMips: String = header + prologue + value.map(_.genMips).mkString("\n") + epilogue + ret
+
+    private def header: String =
+      s""".globl $ident
+         |$ident:
          |
          |""".stripMargin
-  }
 
-  case class Print(ident: IR.Ident) extends Mips {
-    override def genMips: String =
+    private def prologue: String =
       s"""
-         |  li  $$v0, 1
-         |  la  $$t0, ${ident.name}
-         |  lw  $$a0, 0($$t0)
-         |  syscall
+         |  ${push("$fp")}
+         |  ${push("$ra")}
+         |  move  $$fp, $$sp
+         |
          |""".stripMargin
+
+    private def epilogue: String =
+      s"""
+         |  move  $$sp,  $$fp
+         |  ${pop("$ra")}
+         |  ${pop("$fp")}
+         |
+         |""".stripMargin
+
+    private def ret: String =
+      """
+        |  li  $v0,  0
+        |  jr  $ra
+        |""".stripMargin
   }
 
   case class PrintInt(expr: List[IR.Mips]) extends Mips {
@@ -98,11 +87,8 @@ object IR {
 
     override def genMips: String = left.map(_.genMips).mkString("\n") + right.map(_.genMips).mkString("\n") +
       s"""  ${pop("$t1")}
-         |
          |  ${pop("$t2")}
-         |
          |  $operand $destRegister, $$t2, $$t1
-         |
          |  ${push(destRegister)}""".stripMargin
   }
 
@@ -139,12 +125,19 @@ object IR {
   private def push(name: String): String =
     s"""sub  $$sp, $$sp, 4
        |  sw  $name, 0($$sp)
-       |  """.stripMargin
+       |""".stripMargin
 
   private def pop(name: String): String =
     s"""lw $name, 0($$sp)
        |  addiu $$sp, $$sp, 4
-       |  """.stripMargin
+       |""".stripMargin
 
-  private def load(register: String, name: String): String = s"""lw  $register,  ${Table.load(name).get}($$fp)""".stripMargin
+  private def load(register: String, name: String): String =
+    s""" lw  $register,  ${Table.load(name).get}($$fp)
+       |""".stripMargin
+
+  private def store(register: String, name: String): String =
+    s"""  sub $$fp, $$fp, 4
+       |  sw  $register, 0($$fp)
+       |""".stripMargin
 }

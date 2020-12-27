@@ -8,19 +8,17 @@ import scala.util.Using
 object Application {
   def main(args: Array[String]): Unit = {
     val nodeList = Parser.parseAll(Parser.program,
-      """  val result = 1 + 1 + 2 + 3
-        |  val price = result
-        |  val value = price - result
-        |  val multiplication = 1 * 3 * 4
-        |  val division = 20 / 3
-        |  val blockValue = { 12 }
+      """
         |
-        |  print({
-        |    blockValue
-        |    1
-        |  })
-        |  print(division)
-        |  print(1 + 1 + 2)
+        | def main() = {
+        |   val h = 8
+        |   val e = 5
+        |   val l = 13
+        |   val o = 16
+        |
+        |   print(h)
+        |   print(o + 12)
+        | }
         |
         |""".stripMargin)
       .map(MipsGenerator.generateMain)

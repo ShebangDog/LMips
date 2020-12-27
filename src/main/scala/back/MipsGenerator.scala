@@ -6,12 +6,12 @@ object MipsGenerator {
   def generateMain(nodeList: List[AST.Node]): List[IR.Mips] = {
     val list = generateProgram(nodeList)
 
-    (IR.Header :: list) :+ IR.Footer
+    IR.Text :: list
   }
 
   def generate(nodeList: List[AST.Node]): List[IR.Mips] = {
     val (declare, rest) = generateProgram(nodeList).partition {
-      case IR.Declare(_, _) => true
+      case IR.DeclareValue(_, _) => true
       case _ => false
     }
 
@@ -19,15 +19,16 @@ object MipsGenerator {
   }
 
   def generateProgram(nodeList: List[AST.Node]): List[IR.Mips] = nodeList.flatMap {
-    case stmt: AST.Statement => generateStatement(stmt)
+    case stmt: AST.Statement => List(generateStatement(stmt))
     case expr: AST.Expression => generateExpression(expr)
   }
 
-  def generateStatement(statement: AST.Statement): List[IR.Mips] = statement match {
-    case AST.DeclareValue(identity, expr) => List(IR.Declare(identity.name, generateExpression(expr)))
+  def generateStatement(statement: AST.Statement): IR.Mips = statement match {
+    case AST.DeclareValue(identity, expr) => IR.DeclareValue(identity.name, generateExpression(expr))
 
-    case AST.Println(expr) => List(IR.PrintInt(generateExpression(expr)))
+    case AST.Println(expr) => IR.PrintInt(generateExpression(expr))
 
+    case AST.DeclareFunction(identity, paramList, body) => IR.DeclareFunction(identity.name, generateExpression(body))
   }
 
   def generateExpression(expression: AST.Expression): List[IR.Mips] = expression match {

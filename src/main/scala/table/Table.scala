@@ -7,16 +7,16 @@ object Table {
 
   val idList: List[String] = mutableIdList.toList
 
-  def store(ident: String): Int = {
+  def store(ident: String): Unit = {
     mutableIdList += ident
-
-    mutableIdList.size
   }
 
   def load(ident: String): Option[Int] = {
+    def offset(index: Int): Int = -(index + 1) * 4
+
     mutableIdList.indexOf(ident) match {
       case -1 => None
-      case other => Some(other * 4 + 4)
+      case other => Some(offset(other))
     }
   }
 
