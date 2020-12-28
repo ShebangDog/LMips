@@ -29,30 +29,24 @@ object IR {
     override def genMips: String = header + prologue + value.map(_.genMips).mkString("\n") + epilogue + ret
 
     private def header: String =
-      s""".globl $ident
+      s"""  .globl $ident
          |$ident:
-         |
          |""".stripMargin
 
     private def prologue: String =
-      s"""
-         |  ${push("$fp")}
+      s"""  ${push("$fp")}
          |  ${push("$ra")}
          |  move  $$fp, $$sp
-         |
          |""".stripMargin
 
     private def epilogue: String =
-      s"""
-         |  move  $$sp,  $$fp
+      s"""  move  $$sp,  $$fp
          |  ${pop("$ra")}
          |  ${pop("$fp")}
-         |
          |""".stripMargin
 
     private def ret: String =
-      """
-        |  li  $v0,  0
+      """  li  $v0,  0
         |  jr  $ra
         |""".stripMargin
   }
@@ -89,7 +83,8 @@ object IR {
       s"""  ${pop("$t1")}
          |  ${pop("$t2")}
          |  $operand $destRegister, $$t2, $$t1
-         |  ${push(destRegister)}""".stripMargin
+         |  ${push(destRegister)}
+         |""".stripMargin
   }
 
   case class Addition(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
@@ -133,11 +128,11 @@ object IR {
        |""".stripMargin
 
   private def load(register: String, name: String): String =
-    s""" lw  $register,  ${Table.load(name).get}($$fp)
+    s"""lw  $register,  ${Table.load(name).get}($$fp)
        |""".stripMargin
 
   private def store(register: String, name: String): String =
-    s"""  sub $$fp, $$fp, 4
+    s"""sub $$fp, $$fp, 4
        |  sw  $register, 0($$fp)
        |""".stripMargin
 }
