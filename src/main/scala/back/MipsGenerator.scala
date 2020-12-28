@@ -28,12 +28,17 @@ object MipsGenerator {
 
     case AST.Println(expr) => IR.PrintInt(generateExpression(expr))
 
-    case AST.DeclareFunction(identity, paramList, body) => IR.DeclareFunction(identity.name, generateExpression(body))
+    case AST.DeclareFunction(identity, paramList, body) => IR.DeclareFunction(
+      identity.name,
+      paramList.map(_.name),
+      generateExpression(body)
+    )
   }
 
   def generateExpression(expression: AST.Expression): List[IR.Mips] = expression match {
     case AST.Number(value) => List(IR.Number(value))
     case AST.Ident(name) => List(IR.Ident(name))
+    case AST.CallFunction(identity, argumentList) => List(IR.CallFunction(identity.name, argumentList.flatMap(generateExpression)))
     case AST.Block(nodeList) => generate(nodeList)
     case arithmetic: AST.Arithmetic => List(generateArithmetic(arithmetic))
   }

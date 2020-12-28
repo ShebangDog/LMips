@@ -10,14 +10,12 @@ object Application {
     val nodeList = Parser.parseAll(Parser.program,
       """
         |
-        | def main() = {
-        |   val h = 8
-        |   val e = 5
-        |   val l = 13
-        |   val o = 16
+        | def main(p) = {
+        |   print(plus(1, 2))
+        | }
         |
-        |   print(h)
-        |   print(o + 12)
+        | def plus(left, right) = {
+        |   left + right
         | }
         |
         |""".stripMargin)

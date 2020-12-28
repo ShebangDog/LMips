@@ -6,7 +6,7 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object Parser extends JavaTokenParsers {
 
-  def program: Parser[List[AST.Node]] = rep((stmt | expr) <~ rep("""\n""")) ^^ { statement =>
+  def program: Parser[List[AST.Node]] = rep((stmt | expr) <~ rep("\n")) ^^ { statement =>
     statement.foldRight(List[AST.Node]()) { case (head, rest) => head :: rest }
   }
 
@@ -38,16 +38,21 @@ object Parser extends JavaTokenParsers {
     }
   }
 
-  def fact: Parser[AST.Expression] = "(" ~> expr <~ ")" |
+  def fact: Parser[AST.Expression] = ident ~ args ^^ {
+    case ident ~ args => AST.CallFunction(AST.Ident(ident), args)
+  } |
+    "(" ~> expr <~ ")" |
     "{" ~> rep(stmt | expr) <~ "}" ^^ AST.Block |
     wholeNumber ^^ { num => AST.Number(num.toInt) } |
     ident ^^ AST.Ident
 
   def param: Parser[List[AST.Ident]] = "(" ~> opt(ident ~ rep("," ~> ident)) <~ ")" ^^ {
     case None => List()
-    case Some(head ~ rest) => (rest match {
-      case Nil => List(head)
-      case head :: tail => head :: rest
-    }).map(AST.Ident)
+    case Some(head ~ rest) => (head :: rest).map(AST.Ident)
+  }
+
+  def args: Parser[List[AST.Expression]] = "(" ~> opt(expr ~ rep("," ~> expr)) <~ ")" ^^ {
+    case None => List()
+    case Some(head ~ rest) => head :: rest
   }
 }

@@ -98,4 +98,25 @@ class Test extends FunSuite {
       case (value, index) => Table.load(value).foreach(v => assert(v == index))
     }
   }
+
+  test("block") {
+    val nodeList = parse(
+      """
+        |
+        | def main() = {
+        |   val h = 8
+        |   val e = 5
+        |   val l = 13
+        |   val o = 16
+        |
+        |   print(h)
+        |   print(e)
+        |   print(l)
+        |   print(l)
+        |   print(o)
+        | }
+        |
+        |""".stripMargin)
+
+  }
 }

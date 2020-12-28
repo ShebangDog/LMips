@@ -24,9 +24,12 @@ object IR {
     override def genMips: String = value.map(_.genMips).mkString("\n")
   }
 
-  case class DeclareFunction(ident: String, value: List[IR.Mips]) extends Mips {
+  case class DeclareFunction(ident: String, paramList: List[String], value: List[IR.Mips]) extends Mips {
+    paramList.foreach(Table.store)
 
-    override def genMips: String = header + prologue + value.map(_.genMips).mkString("\n") + epilogue + ret
+    override def genMips: String = header + prologue + value.map(_.genMips).mkString("\n") + ret + epilogue + exit
+
+    private def argumentRegisterList = paramList.zipWithIndex.map(_._2).map("$a" + _)
 
     private def header: String =
       s"""  .globl $ident
@@ -34,29 +37,49 @@ object IR {
          |""".stripMargin
 
     private def prologue: String =
-      s"""  ${push("$fp")}
+      s"""  #prologue
+         |  ${push("$fp")}
          |  ${push("$ra")}
+         |  ${argumentRegisterList.map(push).mkString("\n")}
          |  move  $$fp, $$sp
+         |  #prologue
          |""".stripMargin
 
     private def epilogue: String =
-      s"""  move  $$sp,  $$fp
+      s"""  #epilogue
+         |  move  $$sp,  $$fp
+         |  ${argumentRegisterList.reverse.map(pop).mkString("\n")}
          |  ${pop("$ra")}
          |  ${pop("$fp")}
+         |  #epilogue
          |""".stripMargin
 
     private def ret: String =
-      """  li  $v0,  0
-        |  jr  $ra
-        |""".stripMargin
+      s"""  ${pop("$v0")}
+         |""".stripMargin
+
+    private def exit: String =
+      s"""  jr  $$ra
+         |""".stripMargin
+  }
+
+  case class CallFunction(ident: String, argumentList: List[IR.Mips]) extends Mips {
+    override def genMips: String = argumentList.map(_.genMips).mkString("\n") +
+      s"""  jal $ident
+         |  ${push("$v0")}
+         |""".stripMargin
   }
 
   case class PrintInt(expr: List[IR.Mips]) extends Mips {
-    override def genMips: String = expr.map(_.genMips).mkString("\n") +
+    override def genMips: String = "#print int\n" +
+      expr.map(_.genMips).mkString("\n") +
       s"""  ${pop("$t0")}
          |  li  $$v0, 1
          |  move $$a0, $$t0
          |  syscall
+         |  #print int
+         |  li  $$t0, 0
+         |  ${push("$t0")}
          |""".stripMargin
   }
 
@@ -118,12 +141,14 @@ object IR {
 
 
   private def push(name: String): String =
-    s"""sub  $$sp, $$sp, 4
+    s"""#push
+       |  sub  $$sp, $$sp, 4
        |  sw  $name, 0($$sp)
        |""".stripMargin
 
   private def pop(name: String): String =
-    s"""lw $name, 0($$sp)
+    s"""#pop
+       |  lw $name, 0($$sp)
        |  addiu $$sp, $$sp, 4
        |""".stripMargin
 

@@ -19,6 +19,8 @@ object AST {
 
   case class Ident(name: String) extends Expression
 
+  case class CallFunction(identity: Ident, argumentList: List[AST.Expression]) extends Expression
+
   case class Block(nodeList: List[AST.Node]) extends Expression
 
   sealed abstract class Arithmetic(operator: String, left: AST.Expression, right: AST.Expression) extends Expression
@@ -30,5 +32,23 @@ object AST {
   case class Multiplication(left: AST.Expression, right: AST.Expression) extends Arithmetic("*", left, right)
 
   case class Division(left: AST.Expression, right: AST.Expression) extends Arithmetic("/", left, right)
+
+  sealed trait Type {
+    override def equals(obj: Any): Boolean = obj match {
+      case AST.Any => true
+      case _ => super.equals(obj)
+    }
+  }
+
+  case object Any extends Type {
+    override def equals(obj: Any): Boolean = obj match {
+      case _: AST.Type => true
+      case _ => false
+    }
+  }
+
+  case object Int extends Type
+
+  case object Unit extends Type
 
 }
