@@ -74,31 +74,6 @@ class Test extends FunSuite {
     }
   }
 
-  test("gen_table") {
-    val nodeList = parse(
-      """  val value = 1
-        |  val hoge = 1
-        |  val piyo = 1
-        |  val foo = 1
-        |  val bar = 1
-        |  val value = 1
-        |
-        |  val result = value + hoge + piyo + foo + bar
-        |
-        |""".stripMargin
-    )
-
-    val expected = List("value", "hoge", "piyo", "foo", "bar", "value")
-
-    (expected zip Table.idList).foreach {
-      case (left, right) => assert(left == right)
-    }
-
-    expected.zipWithIndex.foreach {
-      case (value, index) => Table.load(value).foreach(v => assert(v == index))
-    }
-  }
-
   test("block") {
     val nodeList = parse(
       """

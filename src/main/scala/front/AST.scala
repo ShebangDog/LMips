@@ -1,5 +1,7 @@
 package front
 
+import table.Table
+
 object AST {
 
   sealed trait Node
@@ -8,7 +10,7 @@ object AST {
 
   case class DeclareValue(identity: Ident, expression: Expression) extends Statement
 
-  case class DeclareFunction(identity: Ident, paramList: List[AST.Ident], body: AST.Expression) extends Statement
+  case class DeclareFunction(identity: Ident, paramList: List[AST.Ident], body: AST.Expression, table: Table = Table()) extends Statement
 
   sealed class Expression extends Node
 

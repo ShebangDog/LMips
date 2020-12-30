@@ -1,10 +1,14 @@
 package front
 
+import back.ir.Framework
 import table.Table
 
 object IR {
 
-  sealed trait Mips {
+  sealed trait Mips extends Framework {
+
+    override def mkString: String = genMips
+
     def genMips: String
   }
 
@@ -24,32 +28,18 @@ object IR {
 
   case class Block(body: List[IR.Mips]) extends Expression {
 
-    override def genMips: String = {
-      val last = body.last match {
-        case function: CallFunction => ""
-        case expression: Expression => expression.genMips
-        case _ => push("$zero")
-      }
-
-      val stmtList = body.filter {
-        case _: Statement => true
-        case _: CallFunction => true
-        case _ => false
-      }
-
-      stmtList.map(_.genMips).mkString("\n") + last
-    }
+    override def genMips: String = body.map(_.genMips).mkString("\n")
   }
 
-  case class DeclareValue(ident: AST.Ident, value: List[IR.Mips], table: Table) extends IR.Statement {
+  case class DeclareValue(ident: AST.Ident, value: IR.Mips, table: Table) extends IR.Statement {
     table.store(ident)
 
-    override def genMips: String = s"#${ident.name} = value\n" + value.map(_.genMips).mkString("\n") + s"#${ident.name} = value\n"
+    override def genMips: String = s"#${ident.name} = value\n" + value.genMips + look("$t0") + store("$t0", table.load(ident).get) + s"#${ident.name} = value\n"
   }
 
-  case class DeclareFunction(ident: AST.Ident, paramList: List[AST.Ident], value: List[IR.Mips], table: Table) extends IR.Statement {
+  case class DeclareFunction(ident: AST.Ident, paramList: List[AST.Ident], value: IR.Mips, table: Table) extends IR.Statement {
 
-    override def genMips: String = header + prologue + value.map(_.genMips).mkString("\n") + ret + epilogue + exit
+    override def genMips: String = header + prologue + value.genMips + ret + epilogue + exit
 
     private val paramRegList = paramList.zipWithIndex.map(_._2).map("$a" + _)
 
@@ -91,6 +81,7 @@ object IR {
     override def genMips: String = argumentList.map(_.genMips).mkString("\n") +
       s"""  ${argumentRegList.map(pop).mkString("\n")}
          |  jal ${ident.name}
+         |  ${push("$v0")}
          |""".stripMargin
   }
 
@@ -108,12 +99,12 @@ object IR {
          |""".stripMargin
   }
 
-  abstract sealed class Arithmetic(left: List[IR.Mips], right: List[IR.Mips]) extends Expression {
+  abstract sealed class Arithmetic(left: IR.Mips, right: IR.Mips) extends Expression {
     val operand: String
 
     val destRegister: String
 
-    override def genMips: String = left.map(_.genMips).mkString("\n") + right.map(_.genMips).mkString("\n") +
+    override def genMips: String = left.genMips + right.genMips +
       s"""  ${pop("$t1")}
          |  ${pop("$t2")}
          |  $operand $destRegister, $$t2, $$t1
@@ -121,27 +112,27 @@ object IR {
          |""".stripMargin
   }
 
-  case class Addition(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
+  case class Addition(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
     override val operand: String = "add"
     override val destRegister: String = "$s0"
   }
 
-  case class Subtraction(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
+  case class Subtraction(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
     override val operand: String = "sub"
     override val destRegister: String = "$s0"
   }
 
-  case class Multiplication(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
+  case class Multiplication(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
     override val operand: String = "mul"
     override val destRegister: String = "$s0"
   }
 
-  case class Division(left: List[IR.Mips], right: List[IR.Mips]) extends Arithmetic(left, right) {
+  case class Division(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
     override val operand: String = "div"
     override val destRegister: String = "$s0"
   }
 
-  object PrintInt extends DeclareFunction(AST.Ident("print"), List(), List(PrintIntBody), Table())
+  object PrintInt extends DeclareFunction(AST.Ident("print"), List(), PrintIntBody, Table())
 
   object PrintIntBody extends Mips {
     override def genMips: String = {
@@ -168,12 +159,15 @@ object IR {
        |  addiu $$sp, $$sp, 4
        |""".stripMargin
 
+  private def look(name: String): String = s"  lw  $name,  0($$sp)"
+
   private def load(register: String, name: String, table: Table): String =
     s"""lw  $register,  ${table.load(AST.Ident(name)).get}($$fp)
        |""".stripMargin
 
-  private def store(register: String, name: String): String =
-    s"""sub $$fp, $$fp, 4
-       |  sw  $register, 0($$fp)
-       |""".stripMargin
+  private def store(register: String, offset: Int): String =
+    s"""  #store
+       |  sw  $register, $offset($$fp)
+       |  #store""".stripMargin
+
 }

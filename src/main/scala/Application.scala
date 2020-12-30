@@ -12,7 +12,7 @@ object Application {
         | def main() = {
         |   val value = 1
         |   val result = {
-        |     print(value)
+        |     print(1)
         |     1000
         |     1 * 3
         |   }
@@ -24,7 +24,7 @@ object Application {
         |   val mips = 12 + 3
         |
         |   print(mips + value)
-        |   plus(1, 2)
+        |   print(plus(1, 3))
         | }
         |
         | def plus(left, right) = {
