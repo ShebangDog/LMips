@@ -10,9 +10,6 @@ object AST {
 
   case class DeclareFunction(identity: Ident, paramList: List[AST.Ident], body: AST.Expression) extends Statement
 
-  case class Println(value: AST.Expression) extends Statement
-
-
   sealed class Expression extends Node
 
   case class Number(value: Int) extends Expression

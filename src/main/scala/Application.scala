@@ -9,17 +9,33 @@ object Application {
   def main(args: Array[String]): Unit = {
     val nodeList = Parser.parseAll(Parser.program,
       """
+        | def main() = {
+        |   val value = 1
+        |   val result = {
+        |     print(value)
+        |     1000
+        |     1 * 3
+        |   }
         |
-        | def main(p) = {
-        |   print(plus(1, 2))
+        |   print(12)
+        |   print(result)
+        |   print(value + 1)
+        |
+        |   val mips = 12 + 3
+        |
+        |   print(mips + value)
+        |   plus(1, 2)
         | }
         |
         | def plus(left, right) = {
-        |   left + right
+        |   val spim = 1
+        |
+        |   print(spim + left + right)
         | }
         |
+        |
         |""".stripMargin)
-      .map(MipsGenerator.generateMain)
+      .map(MipsGenerator.generate)
       .get
       .map(_.genMips)
       .filter(_.nonEmpty)

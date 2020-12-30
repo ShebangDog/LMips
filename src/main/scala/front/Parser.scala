@@ -10,7 +10,7 @@ object Parser extends JavaTokenParsers {
     statement.foldRight(List[AST.Node]()) { case (head, rest) => head :: rest }
   }
 
-  def stmt: Parser[AST.Statement] = decl | print
+  def stmt: Parser[AST.Statement] = decl
 
   def decl: Parser[AST.Statement] = ("val" ~> ident) ~ ("=" ~> expr) ^^ {
     case name ~ expr => AST.DeclareValue(Ident(name), expr)
@@ -19,8 +19,6 @@ object Parser extends JavaTokenParsers {
       case name ~ None ~ expr => AST.DeclareFunction(Ident(name), List(), expr)
       case name ~ Some(param) ~ expr => AST.DeclareFunction(Ident(name), param, expr)
     }
-
-  def print: Parser[AST.Statement] = "print" ~> ("(" ~> expr <~ ")") ^^ AST.Println
 
   def expr: Parser[AST.Expression] = term ~ rep(("+" | "-") ~ term) ^^ {
     case term ~ Nil => term

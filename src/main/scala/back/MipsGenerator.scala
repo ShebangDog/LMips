@@ -1,53 +1,55 @@
 package back
 
 import front.{AST, IR}
+import table.Table
 
 object MipsGenerator {
-  def generateMain(nodeList: List[AST.Node]): List[IR.Mips] = {
+  def generate(nodeList: List[AST.Node]): List[IR.Mips] = {
     val list = generateProgram(nodeList)
 
-    IR.Text :: list
+    (IR.Text :: list) :+ IR.PrintInt
   }
 
-  def generate(nodeList: List[AST.Node]): List[IR.Mips] = {
-    val (declare, rest) = generateProgram(nodeList).partition {
-      case IR.DeclareValue(_, _) => true
-      case _ => false
+  def generateProgram(nodeList: List[AST.Node], table: Table = Table()): List[IR.Mips] = nodeList.flatMap {
+    case stmt: AST.Statement => List(generateStatement(stmt, table))
+    case expr: AST.Expression => generateExpression(expr, table)
+  }
+
+  def generateStatement(statement: AST.Statement, table: Table): IR.Statement = statement match {
+    case AST.DeclareValue(identity, expr) => IR.DeclareValue(identity, generateExpression(expr, table), table)
+
+    case AST.DeclareFunction(identity, paramList, body) =>
+      val table = Table(paramList)
+
+      IR.DeclareFunction(
+        identity,
+        paramList,
+        generateExpression(body, table),
+        table
+      )
+  }
+
+  def generateExpression(expression: AST.Expression, table: Table): List[IR.Mips] = {
+    def generateExpr: AST.Expression => List[IR.Mips] = expr => generateExpression(expr, table)
+
+    expression match {
+      case AST.Number(value) => List(IR.Number(value))
+      case AST.Ident(name) => List(IR.Ident(name, table))
+      case AST.CallFunction(identity, argumentList) => List(IR.CallFunction(identity, argumentList.flatMap(generateExpr)))
+      case AST.Block(nodeList) => List(IR.Block(generateProgram(nodeList, table)))
+      case arithmetic: AST.Arithmetic => List(generateArithmetic(arithmetic, table))
     }
-
-    declare ::: rest
   }
 
-  def generateProgram(nodeList: List[AST.Node]): List[IR.Mips] = nodeList.flatMap {
-    case stmt: AST.Statement => List(generateStatement(stmt))
-    case expr: AST.Expression => generateExpression(expr)
-  }
+  def generateArithmetic(arithmetic: AST.Arithmetic, table: Table): IR.Arithmetic = {
+    def generateExpr: AST.Expression => List[IR.Mips] = expr => generateExpression(expr, table)
 
-  def generateStatement(statement: AST.Statement): IR.Mips = statement match {
-    case AST.DeclareValue(identity, expr) => IR.DeclareValue(identity.name, generateExpression(expr))
-
-    case AST.Println(expr) => IR.PrintInt(generateExpression(expr))
-
-    case AST.DeclareFunction(identity, paramList, body) => IR.DeclareFunction(
-      identity.name,
-      paramList.map(_.name),
-      generateExpression(body)
-    )
-  }
-
-  def generateExpression(expression: AST.Expression): List[IR.Mips] = expression match {
-    case AST.Number(value) => List(IR.Number(value))
-    case AST.Ident(name) => List(IR.Ident(name))
-    case AST.CallFunction(identity, argumentList) => List(IR.CallFunction(identity.name, argumentList.flatMap(generateExpression)))
-    case AST.Block(nodeList) => generate(nodeList)
-    case arithmetic: AST.Arithmetic => List(generateArithmetic(arithmetic))
-  }
-
-  def generateArithmetic(arithmetic: AST.Arithmetic): IR.Mips = arithmetic match {
-    case AST.Addition(left, right) => IR.Addition(generateExpression(left), generateExpression(right))
-    case AST.Subtraction(left, right) => IR.Subtraction(generateExpression(left), generateExpression(right))
-    case AST.Multiplication(left, right) => IR.Multiplication(generateExpression(left), generateExpression(right))
-    case AST.Division(left, right) => IR.Division(generateExpression(left), generateExpression(right))
+    arithmetic match {
+      case AST.Addition(left, right) => IR.Addition(generateExpr(left), generateExpr(right))
+      case AST.Subtraction(left, right) => IR.Subtraction(generateExpr(left), generateExpr(right))
+      case AST.Multiplication(left, right) => IR.Multiplication(generateExpr(left), generateExpr(right))
+      case AST.Division(left, right) => IR.Division(generateExpr(left), generateExpr(right))
+    }
   }
 
 }
