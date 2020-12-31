@@ -79,7 +79,7 @@ object IR {
     private val argumentRegList = argumentList.zipWithIndex.map(_._2).map("$a" + _)
 
     override def genMips: String = argumentList.map(_.genMips).mkString("\n") +
-      s"""  ${argumentRegList.map(pop).mkString("\n")}
+      s"""  ${argumentRegList.reverse.map(pop).mkString("\n")}
          |  jal ${ident.name}
          |  ${push("$v0")}
          |""".stripMargin
@@ -143,6 +143,7 @@ object IR {
          |  syscall
          |
          |  li  $retReg, $retVal
+         |  ${push(retReg)}
          |""".stripMargin
     }
   }
