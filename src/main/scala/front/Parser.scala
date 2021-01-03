@@ -6,11 +6,11 @@ import scala.util.parsing.combinator.JavaTokenParsers
 
 object Parser extends JavaTokenParsers {
 
-  def program: Parser[List[AST.Node]] = rep((stmt | expr) <~ rep("""\n""")) ^^ { statement =>
+  def program: Parser[List[AST.Node]] = rep((stmt | expr) <~ rep("\n")) ^^ { statement =>
     statement.foldRight(List[AST.Node]()) { case (head, rest) => head :: rest }
   }
 
-  def stmt: Parser[AST.Statement] = decl | print
+  def stmt: Parser[AST.Statement] = decl
 
   def decl: Parser[AST.Statement] = ("val" ~> ident) ~ ("=" ~> expr) ^^ {
     case name ~ expr => AST.DeclareValue(Ident(name), expr)
@@ -20,13 +20,29 @@ object Parser extends JavaTokenParsers {
       case name ~ Some(param) ~ expr => AST.DeclareFunction(Ident(name), param, expr)
     }
 
-  def print: Parser[AST.Statement] = "print" ~> ("(" ~> expr <~ ")") ^^ AST.Println
-
-  def expr: Parser[AST.Expression] = term ~ rep(("+" | "-") ~ term) ^^ {
-    case term ~ Nil => term
-    case term ~ rest => rest.foldLeft(term) {
+  def expr: Parser[AST.Expression] = equality ~ rep(("+" | "-") ~ equality) ^^ {
+    case equality ~ Nil => equality
+    case equality ~ rest => rest.foldLeft(equality) {
       case (l, "+" ~ r) => AST.Addition(l, r)
       case (l, "-" ~ r) => AST.Subtraction(l, r)
+    }
+  }
+
+  def equality: Parser[AST.Expression] = relational ~ rep(("==" | "!=") ~ relational) ^^ {
+    case relational ~ Nil => relational
+    case relational ~ rest => rest.foldLeft(relational) {
+      case (l, "==" ~ r) => AST.Equal(l, r)
+      case (l, "!=" ~ r) => AST.NotEqual(l, r)
+    }
+  }
+
+  def relational: Parser[AST.Expression] = term ~ rep((">=" | ">" | "<=" | "<") ~ term) ^^ {
+    case term ~ Nil => term
+    case term ~ rest => rest.foldLeft(term) {
+      case (l, ">" ~ r) => AST.GreaterThan(l, r)
+      case (l, ">=" ~ r) => AST.GreaterThanEqual(l, r)
+      case (l, "<" ~ r) => AST.LessThan(l, r)
+      case (l, "<=" ~ r) => AST.LessThanEqual(l, r)
     }
   }
 
@@ -38,16 +54,21 @@ object Parser extends JavaTokenParsers {
     }
   }
 
-  def fact: Parser[AST.Expression] = "(" ~> expr <~ ")" |
+  def fact: Parser[AST.Expression] = ident ~ args ^^ {
+    case ident ~ args => AST.CallFunction(AST.Ident(ident), args)
+  } |
+    "(" ~> expr <~ ")" |
     "{" ~> rep(stmt | expr) <~ "}" ^^ AST.Block |
     wholeNumber ^^ { num => AST.Number(num.toInt) } |
     ident ^^ AST.Ident
 
   def param: Parser[List[AST.Ident]] = "(" ~> opt(ident ~ rep("," ~> ident)) <~ ")" ^^ {
     case None => List()
-    case Some(head ~ rest) => (rest match {
-      case Nil => List(head)
-      case head :: tail => head :: rest
-    }).map(AST.Ident)
+    case Some(head ~ rest) => (head :: rest).map(AST.Ident)
+  }
+
+  def args: Parser[List[AST.Expression]] = "(" ~> opt(expr ~ rep("," ~> expr)) <~ ")" ^^ {
+    case None => List()
+    case Some(head ~ rest) => head :: rest
   }
 }

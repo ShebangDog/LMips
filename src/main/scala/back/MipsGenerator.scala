@@ -1,51 +1,61 @@
 package back
 
 import front.{AST, IR}
+import table.Table
 
 object MipsGenerator {
-  def generateMain(nodeList: List[AST.Node]): List[IR.Mips] = {
-    val (declare, rest) = generateProgram(nodeList).partition {
-      case IR.Declare(_, _) => true
-      case _ => false
-    }
-
-    (IR.Data :: declare) ::: ((IR.Header :: rest) :+ IR.Footer)
-  }
-
   def generate(nodeList: List[AST.Node]): List[IR.Mips] = {
-    val (declare, rest) = generateProgram(nodeList).partition {
-      case IR.Declare(_, _) => true
-      case _ => false
+    val list = generateProgram(nodeList)
+
+    (IR.Text :: list) :+ IR.PrintInt
+  }
+
+  def generateProgram(nodeList: List[AST.Node], table: Table = Table()): List[IR.Mips] = nodeList.map {
+    case stmt: AST.Statement => generateStatement(stmt, table)
+    case expr: AST.Expression => generateExpression(expr, table)
+  }
+
+  def generateStatement(statement: AST.Statement, table: Table): IR.Statement = statement match {
+    case AST.DeclareValue(identity, expr) => IR.DeclareValue(identity, generateExpression(expr, table), table)
+
+    case AST.DeclareFunction(identity, paramList, body, functionTable) =>
+      paramList.foreach(functionTable.store)
+
+      IR.DeclareFunction(
+        identity,
+        paramList,
+        generateExpression(body, functionTable),
+        functionTable
+      )
+  }
+
+  def generateExpression(expression: AST.Expression, table: Table): IR.Mips = {
+    def generateExpr: AST.Expression => IR.Mips = expr => generateExpression(expr, table)
+
+    expression match {
+      case AST.Number(value) => IR.Number(value)
+      case AST.Ident(name) => IR.Ident(name, table)
+      case AST.CallFunction(identity, argumentList) => IR.CallFunction(identity, argumentList.map(generateExpr))
+      case AST.Block(nodeList) => IR.Block(generateProgram(nodeList, table))
+      case arithmetic: AST.Arithmetic => generateArithmetic(arithmetic, table)
     }
-
-    declare ::: rest
   }
 
-  def generateProgram(nodeList: List[AST.Node]): List[IR.Mips] = nodeList.flatMap {
-    case stmt: AST.Statement => generateStatement(stmt)
-    case expr: AST.Expression => generateExpression(expr)
-  }
+  def generateArithmetic(arithmetic: AST.Arithmetic, table: Table): IR.Arithmetic = {
+    def generateExpr: AST.Expression => IR.Mips = expr => generateExpression(expr, table)
 
-  def generateStatement(statement: AST.Statement): List[IR.Mips] = statement match {
-    case AST.DeclareValue(identity, expr) =>
-      (IR.Declare(identity.name, IR.Global) :: generateExpression(expr)) :+ IR.Store(identity.name)
-
-    case AST.Println(expr) => List(IR.PrintInt(generateExpression(expr)))
-
-  }
-
-  def generateExpression(expression: AST.Expression): List[IR.Mips] = expression match {
-    case AST.Number(value) => List(IR.Number(value))
-    case AST.Ident(name) => List(IR.Ident(name))
-    case AST.Block(nodeList) => generate(nodeList)
-    case arithmetic: AST.Arithmetic => List(generateArithmetic(arithmetic))
-  }
-
-  def generateArithmetic(arithmetic: AST.Arithmetic): IR.Mips = arithmetic match {
-    case AST.Addition(left, right) => IR.Addition(generateExpression(left), generateExpression(right))
-    case AST.Subtraction(left, right) => IR.Subtraction(generateExpression(left), generateExpression(right))
-    case AST.Multiplication(left, right) => IR.Multiplication(generateExpression(left), generateExpression(right))
-    case AST.Division(left, right) => IR.Division(generateExpression(left), generateExpression(right))
+    arithmetic match {
+      case AST.Addition(left, right) => IR.Addition(generateExpr(left), generateExpr(right))
+      case AST.Subtraction(left, right) => IR.Subtraction(generateExpr(left), generateExpr(right))
+      case AST.Multiplication(left, right) => IR.Multiplication(generateExpr(left), generateExpr(right))
+      case AST.Division(left, right) => IR.Division(generateExpr(left), generateExpr(right))
+      case AST.Equal(left, right) => IR.Equal(generateExpr(left), generateExpr(right))
+      case AST.NotEqual(left, right) => IR.NotEqual(generateExpr(left), generateExpr(right))
+      case AST.GreaterThan(left, right) => IR.MoreThan(generateExpr(left), generateExpr(right))
+      case AST.GreaterThanEqual(left, right) => IR.GreaterThanEqual(generateExpr(left), generateExpr(right))
+      case AST.LessThan(left, right) => IR.LessThan(generateExpr(left), generateExpr(right))
+      case AST.LessThanEqual(left, right) => IR.LessThanEqual(generateExpr(left), generateExpr(right))
+    }
   }
 
 }
