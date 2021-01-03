@@ -1,13 +1,30 @@
+import java.io.PrintWriter
+import back.MipsGenerator
 import front.{AST, Parser}
 import org.scalatest.FunSuite
-import table.Table
+
+import scala.util.Using
 
 class Test extends FunSuite {
-  def parse(program: String): List[AST.Node] = Parser.parseAll(Parser.program, program).get
+  def parseAndGet(program: String): List[AST.Node] = Parser.parseAll(Parser.program, program).get
+
+  def genMips(program: String): Unit = {
+    val list = Parser.parseAll(Parser.program, program)
+      .map(MipsGenerator.generate)
+      .get
+      .map(_.genMips)
+      .filter(_.nonEmpty)
+
+    val writer = new PrintWriter("res.as")
+    Using(writer) { writer =>
+      for (line <- list) writer.write(line + "\n")
+    }
+  }
+
 
   test("program") {
 
-    val nodeList = parse(
+    val nodeList = parseAndGet(
       """  val result = 1 + 1 + 2 + 3
         |  val price = result
         |  val value = price - result
@@ -25,7 +42,7 @@ class Test extends FunSuite {
 
   test("expr") {
 
-    val nodeList = parse(
+    val nodeList = parseAndGet(
       """  ( 1 )
         |  { 1 }
         |  1
@@ -37,7 +54,7 @@ class Test extends FunSuite {
   }
 
   test("stmt") {
-    val nodeList = parse(
+    val nodeList = parseAndGet(
       """  def main = {
         |    1
         |  }
@@ -75,7 +92,7 @@ class Test extends FunSuite {
   }
 
   test("block") {
-    val nodeList = parse(
+    val nodeList = parseAndGet(
       """
         |
         | def main() = {
@@ -93,5 +110,30 @@ class Test extends FunSuite {
         |
         |""".stripMargin)
 
+  }
+
+  test("if") {
+    genMips(
+      """ def main() = {
+        |   val value = 10
+        |
+        |   if (value == 101) print(value)
+        | }
+        |
+        |""".stripMargin)
+  }
+
+  test("if-else") {
+    genMips(
+      """ def main() = {
+        |   val value = 10
+        |   if (value == 101) print(value) else print(1)
+        |
+        |   print(if(value == 101) 10)
+        |   print(if(value == 101) 10 else 1)
+        | }
+        |
+        |""".stripMargin
+    )
   }
 }

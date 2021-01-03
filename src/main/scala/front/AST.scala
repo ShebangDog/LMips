@@ -14,9 +14,13 @@ object AST {
 
   sealed class Expression extends Node
 
+  case class IfExpression(condition: Expression, ifTrue: Expression, ifFalse: Option[Expression]) extends Expression
+
   case class Number(value: Int) extends Expression
 
   case class Ident(name: String) extends Expression
+
+  object Main extends Ident("main")
 
   case class CallFunction(identity: Ident, argumentList: List[AST.Expression]) extends Expression
 

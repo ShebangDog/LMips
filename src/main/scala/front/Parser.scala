@@ -54,13 +54,18 @@ object Parser extends JavaTokenParsers {
     }
   }
 
-  def fact: Parser[AST.Expression] = ident ~ args ^^ {
-    case ident ~ args => AST.CallFunction(AST.Ident(ident), args)
-  } |
+  def fact: Parser[AST.Expression] = ifExpression |
+    ident ~ args ^^ {
+      case ident ~ args => AST.CallFunction(AST.Ident(ident), args)
+    } |
     "(" ~> expr <~ ")" |
     "{" ~> rep(stmt | expr) <~ "}" ^^ AST.Block |
     wholeNumber ^^ { num => AST.Number(num.toInt) } |
     ident ^^ AST.Ident
+
+  def ifExpression: Parser[AST.Expression] = "if" ~> ("(" ~> expr <~ ")") ~ expr ~ opt("else" ~> expr) ^^ {
+    case condition ~ left ~ right => AST.IfExpression(condition, left, right)
+  }
 
   def param: Parser[List[AST.Ident]] = "(" ~> opt(ident ~ rep("," ~> ident)) <~ ")" ^^ {
     case None => List()

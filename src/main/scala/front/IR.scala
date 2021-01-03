@@ -22,6 +22,10 @@ object IR {
     override def genMips: String = ""
   }
 
+  case object Zero extends Mips {
+    override def genMips: String = push("$zero")
+  }
+
   sealed trait Expression extends Mips
 
   sealed trait Statement extends Mips
@@ -39,13 +43,15 @@ object IR {
 
   case class DeclareFunction(ident: AST.Ident, paramList: List[AST.Ident], value: IR.Mips, table: Table) extends IR.Statement {
 
+    private def functionName = if (ident == AST.Main) ident.name else s"function_${ident.name}"
+
     override def genMips: String = header + prologue + value.genMips + ret + epilogue + exit
 
     private val paramRegList = paramList.zipWithIndex.map(_._2).map("$a" + _)
 
     private def header =
-      s"""  .globl ${ident.name}
-         |${ident.name}:
+      s"""  .globl $functionName
+         |$functionName:
          |""".stripMargin
 
     private def prologue =
@@ -75,12 +81,42 @@ object IR {
          |""".stripMargin
   }
 
+  case class IfExpression(condition: IR.Mips, ifTrue: IR.Mips, ifFalse: IR.Mips) extends IR.Expression {
+    private val counter = IfExpression.countUp
+
+    private def label(cond: String) = cond + counter
+
+    private val trueLabel = label("true")
+    private val falseLabel = label("false")
+
+    override def genMips: String =
+      s"""  ${condition.genMips}
+         |  ${pop("$s0")}
+         |  beq $$s0,  $$zero,  $falseLabel
+         |$trueLabel:
+         |    ${ifTrue.genMips}
+         |$falseLabel:
+         |    ${ifFalse.genMips}
+         |""".stripMargin
+  }
+
+  object IfExpression {
+    private var counter = 0
+
+    private def countUp: Int = {
+      counter += 1
+      counter
+    }
+  }
+
   case class CallFunction(ident: AST.Ident, argumentList: List[IR.Mips]) extends Expression {
+    private def functionName = if (ident == AST.Main) ident.name else s"function_${ident.name}"
+
     private val argumentRegList = argumentList.zipWithIndex.map(_._2).map("$a" + _)
 
     override def genMips: String = argumentList.map(_.genMips).mkString("\n") +
       s"""  ${argumentRegList.reverse.map(pop).mkString("\n")}
-         |  jal ${ident.name}
+         |  jal $functionName
          |  ${push("$v0")}
          |""".stripMargin
   }
