@@ -18,14 +18,14 @@ object MipsGenerator {
   def generateStatement(statement: AST.Statement, table: Table): IR.Statement = statement match {
     case AST.DeclareValue(identity, expr) => IR.DeclareValue(identity, generateExpression(expr, table), table)
 
-    case AST.DeclareFunction(identity, paramList, body, table) =>
-      paramList.foreach(table.store)
+    case AST.DeclareFunction(identity, paramList, body, functionTable) =>
+      paramList.foreach(functionTable.store)
 
       IR.DeclareFunction(
         identity,
         paramList,
-        generateExpression(body, table),
-        table
+        generateExpression(body, functionTable),
+        functionTable
       )
   }
 
@@ -49,6 +49,12 @@ object MipsGenerator {
       case AST.Subtraction(left, right) => IR.Subtraction(generateExpr(left), generateExpr(right))
       case AST.Multiplication(left, right) => IR.Multiplication(generateExpr(left), generateExpr(right))
       case AST.Division(left, right) => IR.Division(generateExpr(left), generateExpr(right))
+      case AST.Equal(left, right) => IR.Equal(generateExpr(left), generateExpr(right))
+      case AST.NotEqual(left, right) => IR.NotEqual(generateExpr(left), generateExpr(right))
+      case AST.GreaterThan(left, right) => IR.MoreThan(generateExpr(left), generateExpr(right))
+      case AST.GreaterThanEqual(left, right) => IR.GreaterThanEqual(generateExpr(left), generateExpr(right))
+      case AST.LessThan(left, right) => IR.LessThan(generateExpr(left), generateExpr(right))
+      case AST.LessThanEqual(left, right) => IR.LessThanEqual(generateExpr(left), generateExpr(right))
     }
   }
 

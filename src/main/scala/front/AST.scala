@@ -32,6 +32,19 @@ object AST {
 
   case class Division(left: AST.Expression, right: AST.Expression) extends Arithmetic("/", left, right)
 
+  case class Equal(left: AST.Expression, right: AST.Expression) extends Arithmetic("==", left, right)
+
+  case class NotEqual(left: AST.Expression, right: AST.Expression) extends Arithmetic("!=", left, right)
+
+  case class GreaterThan(left: AST.Expression, right: AST.Expression) extends Arithmetic(">", left, right)
+
+  case class GreaterThanEqual(left: AST.Expression, right: AST.Expression) extends Arithmetic(">=", left, right)
+
+  case class LessThan(left: AST.Expression, right: AST.Expression) extends Arithmetic("<", left, right)
+
+  case class LessThanEqual(left: AST.Expression, right: AST.Expression) extends Arithmetic("<=", left, right)
+
+
   sealed trait Type {
     override def equals(obj: Any): Boolean = obj match {
       case AST.Any => true

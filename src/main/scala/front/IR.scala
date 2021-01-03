@@ -132,6 +132,36 @@ object IR {
     override val destRegister: String = "$s0"
   }
 
+  case class Equal(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+    override val operand: String = "seq"
+    override val destRegister: String = "$s0"
+  }
+
+  case class NotEqual(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+    override val operand: String = "sne"
+    override val destRegister: String = "$s0"
+  }
+
+  case class MoreThan(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+    override val operand: String = "sgt"
+    override val destRegister: String = "$s0"
+  }
+
+  case class GreaterThanEqual(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+    override val operand: String = "sge"
+    override val destRegister: String = "$s0"
+  }
+
+  case class LessThan(left: IR.Mips, right: IR.Mips) extends Arithmetic(right, left) {
+    override val operand: String = "sgt"
+    override val destRegister: String = "$s0"
+  }
+
+  case class LessThanEqual(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+    override val operand: String = "sle"
+    override val destRegister: String = "$s0"
+  }
+
   object PrintInt extends DeclareFunction(AST.Ident("print"), List(), PrintIntBody, Table())
 
   object PrintIntBody extends Mips {

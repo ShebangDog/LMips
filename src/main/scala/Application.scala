@@ -10,12 +10,32 @@ object Application {
     val nodeList = Parser.parseAll(Parser.program,
       """
         | def main() = {
+        |
         |   val value = 1
         |   val result = {
+        |     print(value)
         |     print(1)
         |     1000
         |     1 * 3
         |   }
+        |
+        |   val equal = value == 1
+        |   print(equal)
+        |
+        |   val notEqual = value != 1
+        |   print(notEqual)
+        |
+        |   val greater = value > 1
+        |   print(greater)
+        |
+        |   val greaterEqual = value >= 1
+        |   print(greaterEqual)
+        |
+        |   val less = value < 1
+        |   print(less)
+        |
+        |   val lessEqual = value <= 1
+        |   print(lessEqual)
         |
         |   print(12)
         |   print(result)

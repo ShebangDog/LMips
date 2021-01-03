@@ -20,11 +20,29 @@ object Parser extends JavaTokenParsers {
       case name ~ Some(param) ~ expr => AST.DeclareFunction(Ident(name), param, expr)
     }
 
-  def expr: Parser[AST.Expression] = term ~ rep(("+" | "-") ~ term) ^^ {
-    case term ~ Nil => term
-    case term ~ rest => rest.foldLeft(term) {
+  def expr: Parser[AST.Expression] = equality ~ rep(("+" | "-") ~ equality) ^^ {
+    case equality ~ Nil => equality
+    case equality ~ rest => rest.foldLeft(equality) {
       case (l, "+" ~ r) => AST.Addition(l, r)
       case (l, "-" ~ r) => AST.Subtraction(l, r)
+    }
+  }
+
+  def equality: Parser[AST.Expression] = relational ~ rep(("==" | "!=") ~ relational) ^^ {
+    case relational ~ Nil => relational
+    case relational ~ rest => rest.foldLeft(relational) {
+      case (l, "==" ~ r) => AST.Equal(l, r)
+      case (l, "!=" ~ r) => AST.NotEqual(l, r)
+    }
+  }
+
+  def relational: Parser[AST.Expression] = term ~ rep((">=" | ">" | "<=" | "<") ~ term) ^^ {
+    case term ~ Nil => term
+    case term ~ rest => rest.foldLeft(term) {
+      case (l, ">" ~ r) => AST.GreaterThan(l, r)
+      case (l, ">=" ~ r) => AST.GreaterThanEqual(l, r)
+      case (l, "<" ~ r) => AST.LessThan(l, r)
+      case (l, "<=" ~ r) => AST.LessThanEqual(l, r)
     }
   }
 
