@@ -7,6 +7,8 @@
     val i = for(0, cnt -> cnt != 105, count -> {
         count + 1
     }) 
+    val list = [0, 1]
+    each(list, println)
     
     println(L)
     println(M)
