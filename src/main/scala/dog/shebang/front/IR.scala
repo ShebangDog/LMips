@@ -1,7 +1,7 @@
-package front
+package dog.shebang.front
 
-import back.ir.Framework
-import table.Table
+import dog.shebang.back.ir.Framework
+import dog.shebang.table.Table
 
 object IR {
 

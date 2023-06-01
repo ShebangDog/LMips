@@ -1,6 +1,6 @@
-package front
+package dog.shebang.front
 
-import front.AST.Ident
+import dog.shebang.front.AST.Ident
 
 import scala.util.parsing.combinator.JavaTokenParsers
 

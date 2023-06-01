@@ -1,6 +1,6 @@
-package front
+package dog.shebang.front
 
-import table.Table
+import dog.shebang.table.Table
 
 object AST {
 

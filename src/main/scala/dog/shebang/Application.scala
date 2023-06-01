@@ -1,3 +1,5 @@
+package dog.shebang
+
 import java.io.PrintWriter
 
 import back.MipsGenerator

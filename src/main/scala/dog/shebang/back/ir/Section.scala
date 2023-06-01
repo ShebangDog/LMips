@@ -1,4 +1,4 @@
-package back.ir
+package dog.shebang.back.ir
 
 sealed trait Section extends Framework
 

@@ -1,9 +1,10 @@
-package table
+package dog.shebang.table
 
-import front.AST
+import dog.shebang.front.AST
 
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+
 
 class Table(count: Int, registerList: List[AST.Ident]) {
   private val mutableIdList: mutable.ListBuffer[AST.Ident] = registerList.to(ListBuffer)

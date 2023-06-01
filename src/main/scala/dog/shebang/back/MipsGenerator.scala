@@ -1,10 +1,11 @@
-package back
+package dog.shebang.back
 
-import front.{AST, IR}
-import table.Table
+import dog.shebang.front.{AST, IR}
+import dog.shebang.front.AST.Node
+import dog.shebang.table.Table
 
 object MipsGenerator {
-  def generate(nodeList: List[AST.Node]): List[IR.Mips] = {
+  def generate(nodeList: List[Node]): List[IR.Mips] = {
     val list = generateProgram(nodeList)
 
     (IR.Text :: list) :+ IR.PrintInt

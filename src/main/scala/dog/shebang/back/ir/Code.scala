@@ -1,3 +1,5 @@
+package dog.shebang.back.ir
+
 //package back.ir
 //
 //sealed trait Operand {

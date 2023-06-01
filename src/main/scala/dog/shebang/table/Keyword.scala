@@ -1,4 +1,4 @@
-package table
+package dog.shebang.table
 
 sealed class Keyword(val value: String)
 
