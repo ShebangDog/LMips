@@ -88,6 +88,7 @@ object IR {
 
     private val trueLabel = label("true")
     private val falseLabel = label("false")
+    private val endLabel = label("end")
 
     override def genMips: String =
       s"""  ${condition.genMips}
@@ -95,8 +96,10 @@ object IR {
          |  beq $$s0,  $$zero,  $falseLabel
          |$trueLabel:
          |    ${ifTrue.genMips}
+         |    j $endLabel
          |$falseLabel:
          |    ${ifFalse.genMips}
+         |$endLabel:
          |""".stripMargin
   }
 
