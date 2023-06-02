@@ -47,6 +47,8 @@ object Application {
         |
         |   print(mips + value)
         |   print(plus(1, 3))
+        |   print(if(1) 2 else 3)
+        |   print(if(0) 2 else 3)
         | }
         |
         | def plus(left, right) = {
