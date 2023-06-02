@@ -1,6 +1,7 @@
+import dog.shebang.back.MipsGenerator
+import dog.shebang.front.{AST, Parser}
+
 import java.io.PrintWriter
-import back.MipsGenerator
-import front.{AST, Parser}
 import org.scalatest.FunSuite
 
 import scala.util.Using
