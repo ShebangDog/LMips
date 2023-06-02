@@ -14,7 +14,7 @@ object AST {
 
   sealed class Expression extends Node
 
-  case class IfExpression(condition: Expression, ifTrue: Expression, ifFalse: Option[Expression]) extends Expression
+  case class IfExpression(condition: Expression, ifTrue: Expression, ifFalse: Expression) extends Expression
 
   case class Number(value: Int) extends Expression
 

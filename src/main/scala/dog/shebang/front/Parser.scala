@@ -63,7 +63,7 @@ object Parser extends JavaTokenParsers {
     wholeNumber ^^ { num => AST.Number(num.toInt) } |
     ident ^^ AST.Ident
 
-  def ifExpression: Parser[AST.Expression] = "if" ~> ("(" ~> expr <~ ")") ~ expr ~ opt("else" ~> expr) ^^ {
+  def ifExpression: Parser[AST.Expression] = "if" ~> ("(" ~> expr <~ ")") ~ expr ~ ("else" ~> expr) ^^ {
     case condition ~ left ~ right => AST.IfExpression(condition, left, right)
   }
 

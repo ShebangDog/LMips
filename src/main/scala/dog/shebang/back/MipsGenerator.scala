@@ -38,7 +38,7 @@ object MipsGenerator {
       case AST.Ident(name) => IR.Ident(name, table)
       case AST.CallFunction(identity, argumentList) => IR.CallFunction(identity, argumentList.map(generateExpr))
       case AST.Block(nodeList) => IR.Block(generateProgram(nodeList, table))
-      case AST.IfExpression(condition, ifTrue, ifFalse) => IR.IfExpression(generateExpr(condition), generateExpr(ifTrue), ifFalse.map(generateExpr).getOrElse(IR.Zero))
+      case AST.IfExpression(condition, ifTrue, ifFalse) => IR.IfExpression(generateExpr(condition), generateExpr(ifTrue), generateExpr(ifFalse))
       case arithmetic: AST.Arithmetic => generateArithmetic(arithmetic, table)
     }
   }
