@@ -1,12 +1,11 @@
 import dog.shebang.back.MipsGenerator
 import dog.shebang.front.{AST, Parser}
+import org.scalatest.funsuite.AnyFunSuite
 
 import java.io.PrintWriter
-import org.scalatest.FunSuite
-
 import scala.util.Using
 
-class Test extends FunSuite {
+class Test extends AnyFunSuite {
   def parseAndGet(program: String): List[AST.Node] = Parser.parseAll(Parser.program, program).get
 
   def genMips(program: String): Unit = {
@@ -130,7 +129,7 @@ class Test extends FunSuite {
         |   val value = 10
         |   if (value == 101) print(value) else print(1)
         |
-        |   print(if(value == 101) 10)
+        |   print(if(value == 101) 10 else 10)
         |   print(if(value == 101) 10 else 1)
         | }
         |
