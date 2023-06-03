@@ -40,3 +40,5 @@ object Table {
   }
 
 }
+
+case object EmptyTable extends Table(0, Nil)
