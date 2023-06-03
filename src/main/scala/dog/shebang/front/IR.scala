@@ -35,7 +35,7 @@ object IR {
     override def genMips: String = body.map(_.genMips).mkString("\n")
   }
 
-  case class DeclareValue(ident: AST.Ident, value: IR.Mips, table: Table) extends IR.Statement {
+  case class DeclareValue(ident: AST.Ident, value: IR.Expression, table: Table) extends IR.Statement {
     table.store(ident)
 
     override def genMips: String = s"#${ident.name} = value\n" + value.genMips + look("$t0") + store("$t0", table.load(ident).get) + s"#${ident.name} = value\n"
@@ -78,6 +78,17 @@ object IR {
 
     private def exit =
       s"""  jr  $$ra
+         |""".stripMargin
+  }
+
+  case class MyList(elements: List[IR.Mips]) extends IR.Expression {
+    def arrayName = s"anonymous_array_${elements.map(_.mkString).mkString("_")}"
+    private def arraySize = s"${arrayName}_size"
+
+    override def genMips: String =
+      s"""  .data
+         |  $arrayName: .word ${elements.map(_.mkString).mkString(", ")}
+         |  $arraySize: .word ${elements.length}
          |""".stripMargin
   }
 
@@ -129,6 +140,8 @@ object IR {
       s"""  li $$t0, $value
          |  ${push("$t0")}
          |""".stripMargin
+
+    override def mkString: String = value.toString
   }
 
   case class Ident(name: String, table: Table) extends Expression {

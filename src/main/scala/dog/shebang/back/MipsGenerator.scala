@@ -30,7 +30,7 @@ object MipsGenerator {
       )
   }
 
-  def generateExpression(expression: AST.Expression, table: Table): IR.Mips = {
+  def generateExpression(expression: AST.Expression, table: Table): IR.Expression = {
     def generateExpr: AST.Expression => IR.Mips = expr => generateExpression(expr, table)
 
     expression match {
@@ -39,6 +39,7 @@ object MipsGenerator {
       case AST.CallFunction(identity, argumentList) => IR.CallFunction(identity, argumentList.map(generateExpr))
       case AST.Block(nodeList) => IR.Block(generateProgram(nodeList, table))
       case AST.IfExpression(condition, ifTrue, ifFalse) => IR.IfExpression(generateExpr(condition), generateExpr(ifTrue), generateExpr(ifFalse))
+      case AST.MyList(elements) => IR.MyList(elements.map(generateExpr))
       case arithmetic: AST.Arithmetic => generateArithmetic(arithmetic, table)
     }
   }

@@ -18,6 +18,8 @@ object AST {
 
   case class Number(value: Int) extends Expression
 
+  case class MyList(elements: List[AST.Expression]) extends Expression
+
   case class Ident(name: String) extends Expression
 
   object Main extends Ident("main")
