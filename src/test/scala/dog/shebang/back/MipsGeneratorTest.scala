@@ -1,7 +1,7 @@
 package dog.shebang.back
 
 import dog.shebang.front.{AST, IR}
-import dog.shebang.table.{EmptyTable, Table}
+import dog.shebang.table.EmptyTable
 import org.scalatest.funspec.AnyFunSpec
 
 class MipsGeneratorTest extends AnyFunSpec {
@@ -36,20 +36,23 @@ class MipsGeneratorTest extends AnyFunSpec {
   }
 
   describe("generateExpression") {
-    val astIrTupleList = List[(AST.Expression, IR.Expression)](
-      (AST.Number(1), IR.Number(1)),
-      (AST.Ident("ident"), IR.Ident("ident", EmptyTable)),
-    )
+    describe("AST.Number, AST.Ident") {
+      val astIrTupleList = List[(AST.Expression, IR.Expression)](
+        (AST.Number(1), IR.Number(1)),
+        (AST.Ident("ident"), IR.Ident("ident", EmptyTable)),
+      )
 
-    astIrTupleList.foreach { case Tuple2(ast, ir) =>
-      describe(s"when called by $ast") {
-        it(s"should generate $ir") {
-          val actual = MipsGenerator.generateExpression(ast, EmptyTable)
-          val expect = ir
+      astIrTupleList.foreach { case Tuple2(ast, ir) =>
+        describe(s"when called by $ast") {
+          it(s"should generate $ir") {
+            val actual = MipsGenerator.generateExpression(ast, EmptyTable)
+            val expect = ir
 
-          assert(actual == expect)
+            assert(actual == expect)
+          }
         }
       }
     }
   }
+
 }
