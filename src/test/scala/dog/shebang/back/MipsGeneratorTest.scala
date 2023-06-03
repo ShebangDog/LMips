@@ -1,7 +1,7 @@
 package dog.shebang.back
 
 import dog.shebang.front.{AST, IR}
-import dog.shebang.table.Table
+import dog.shebang.table.{EmptyTable, Table}
 import org.scalatest.funspec.AnyFunSpec
 
 class MipsGeneratorTest extends AnyFunSpec {
@@ -26,10 +26,7 @@ class MipsGeneratorTest extends AnyFunSpec {
       describe(s"when called by $astConstructor") {
         it(s"should generate $irConstructor") {
           val ast = astConstructor(AST.Number(1), AST.Number(1))
-          //    TODO: Table()ではなく、定義された単位元を利用する
-          val emptyTable = Table()
-
-          val actual = MipsGenerator.generateArithmetic(ast, emptyTable)
+          val actual = MipsGenerator.generateArithmetic(ast, EmptyTable)
           val expect = irConstructor(IR.Number(1), IR.Number(1))
 
           assert(actual == expect)
