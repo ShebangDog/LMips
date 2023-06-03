@@ -37,6 +37,7 @@ class MipsGeneratorTest extends AnyFunSpec {
 
   describe("generateExpression") {
     type AstIrTuple = (AST.Expression, IR.Expression)
+
     describe("AST.Number, AST.Ident") {
       val astIrTupleList = List[AstIrTuple](
         (AST.Number(1), IR.Number(1)),
@@ -44,6 +45,30 @@ class MipsGeneratorTest extends AnyFunSpec {
       )
 
       astIrTupleList.foreach { case Tuple2(ast, ir) =>
+        describe(s"when called by $ast") {
+          it(s"should generate $ir") {
+            val actual = MipsGenerator.generateExpression(ast, EmptyTable)
+            val expect = ir
+
+            assert(actual == expect)
+          }
+        }
+      }
+    }
+
+    describe("AST.CallFunction") {
+      val astIrTupleList = List[AstIrTuple](
+        (
+          AST.CallFunction(AST.Ident("ident"), Nil),
+          IR.CallFunction(AST.Ident("ident"), Nil),
+        ),
+        (
+          AST.CallFunction(AST.Ident("ident"), List(AST.Number(1))),
+          IR.CallFunction(AST.Ident("ident"), List(IR.Number(1)))
+        )
+      )
+
+      astIrTupleList.foreach { case (ast, ir) =>
         describe(s"when called by $ast") {
           it(s"should generate $ir") {
             val actual = MipsGenerator.generateExpression(ast, EmptyTable)
