@@ -4,6 +4,7 @@ import dog.shebang.front.AST.Ident
 
 import scala.util.parsing.combinator.JavaTokenParsers
 
+// TODO: exhaustiveness-checkのエラーをなくす
 object Parser extends JavaTokenParsers {
 
   def program: Parser[List[AST.Node]] = rep((stmt | expr) <~ rep("\n")) ^^ { statement =>
