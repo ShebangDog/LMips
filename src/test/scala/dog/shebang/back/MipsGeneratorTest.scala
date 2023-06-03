@@ -80,5 +80,55 @@ class MipsGeneratorTest extends AnyFunSpec {
       }
     }
 
+    describe("AST.Block") {
+      val astIrTupleList = List[AstIrTuple](
+        (AST.Block(Nil), IR.Block(Nil)),
+        (AST.Block(List(AST.Ident("ident"))), IR.Block(List(IR.Ident("ident", EmptyTable)))),
+        (
+          AST.Block(List(AST.DeclareFunction(AST.Ident("ident"), Nil, AST.Number(1), EmptyTable))),
+          IR.Block(List(IR.DeclareFunction(AST.Ident("ident"), Nil, IR.Number(1), EmptyTable)))
+        ),
+        (
+          AST.Block(
+            List(
+              AST.DeclareFunction(AST.Ident("ident"), Nil, AST.Number(1), EmptyTable),
+              AST.Ident("ident")
+            )
+          ),
+          IR.Block(
+            List(
+              IR.DeclareFunction(AST.Ident("ident"), Nil, IR.Number(1), EmptyTable),
+              IR.Ident("ident", EmptyTable)
+            )
+          )
+        ),
+        (
+          AST.Block(
+            List(
+              AST.Ident("ident"),
+              AST.DeclareFunction(AST.Ident("ident"), Nil, AST.Number(1), EmptyTable),
+            )
+          ),
+          IR.Block(
+            List(
+              IR.Ident("ident", EmptyTable),
+              IR.DeclareFunction(AST.Ident("ident"), Nil, IR.Number(1), EmptyTable),
+            )
+          )
+        ),
+      )
+
+      astIrTupleList.foreach { case (ast, ir) =>
+        describe(s"when called by $ast") {
+          it(s"should generate $ir") {
+            val actual = MipsGenerator.generateExpression(ast, EmptyTable)
+            val expect = ir
+
+            assert(actual == expect)
+          }
+        }
+      }
+    }
+
   }
 }
