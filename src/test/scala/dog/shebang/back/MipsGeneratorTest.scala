@@ -36,8 +36,9 @@ class MipsGeneratorTest extends AnyFunSpec {
   }
 
   describe("generateExpression") {
+    type AstIrTuple = (AST.Expression, IR.Expression)
     describe("AST.Number, AST.Ident") {
-      val astIrTupleList = List[(AST.Expression, IR.Expression)](
+      val astIrTupleList = List[AstIrTuple](
         (AST.Number(1), IR.Number(1)),
         (AST.Ident("ident"), IR.Ident("ident", EmptyTable)),
       )
@@ -53,6 +54,6 @@ class MipsGeneratorTest extends AnyFunSpec {
         }
       }
     }
-  }
 
+  }
 }
