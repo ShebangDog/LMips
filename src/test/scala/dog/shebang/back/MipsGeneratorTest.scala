@@ -38,10 +38,14 @@ class MipsGeneratorTest extends AnyFunSpec {
   describe("generateExpression") {
     type AstIrTuple = (AST.Expression, IR.Expression)
 
-    describe("AST.Number, AST.Ident") {
+    describe("AST.Number, AST.Ident, AST.IfExpression") {
       val astIrTupleList = List[AstIrTuple](
         (AST.Number(1), IR.Number(1)),
         (AST.Ident("ident"), IR.Ident("ident", EmptyTable)),
+        (
+          AST.IfExpression(AST.Number(1), AST.Number(2), AST.Number(3)),
+          IR.IfExpression(IR.Number(1), IR.Number(2), IR.Number(3))
+        ),
       )
 
       astIrTupleList.foreach { case Tuple2(ast, ir) =>
