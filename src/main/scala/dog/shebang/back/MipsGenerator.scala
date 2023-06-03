@@ -30,7 +30,7 @@ object MipsGenerator {
       )
   }
 
-  def generateExpression(expression: AST.Expression, table: Table): IR.Mips = {
+  def generateExpression(expression: AST.Expression, table: Table): IR.Expression = {
     def generateExpr: AST.Expression => IR.Mips = expr => generateExpression(expr, table)
 
     expression match {
