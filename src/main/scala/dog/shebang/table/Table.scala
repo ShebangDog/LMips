@@ -5,7 +5,7 @@ import dog.shebang.front.AST
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-
+// TODO: 単位元を定義する
 class Table(count: Int, registerList: List[AST.Ident]) {
   private val mutableIdList: mutable.ListBuffer[AST.Ident] = registerList.to(ListBuffer)
 
