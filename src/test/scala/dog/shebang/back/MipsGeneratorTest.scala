@@ -1,7 +1,7 @@
 package dog.shebang.back
 
 import dog.shebang.front.{AST, IR}
-import dog.shebang.table.EmptyTable
+import dog.shebang.table.{EmptyTable, Table}
 import org.scalatest.funspec.AnyFunSpec
 
 class MipsGeneratorTest extends AnyFunSpec {
@@ -164,5 +164,89 @@ class MipsGeneratorTest extends AnyFunSpec {
         }
       }
     }
+  }
+
+  describe("generateStatement") {
+    describe("AST.DeclareValue") {
+      type AstIrTuple = (AST.DeclareValue, Table => IR.DeclareValue)
+      val astIrTupleList = List[AstIrTuple](
+        (
+          AST.DeclareValue(AST.Ident("ident"), AST.Number(1)),
+          table => IR.DeclareValue(AST.Ident("ident"), IR.Number(1), table),
+        ),
+        (
+          AST.DeclareValue(
+            AST.Ident("ident"),
+            AST.IfExpression(AST.Number(1), AST.Number(2), AST.Number(3))
+          ),
+          table => IR.DeclareValue(
+            AST.Ident("ident"),
+            IR.IfExpression(IR.Number(1), IR.Number(2), IR.Number(3)), table
+          ),
+        ),
+      )
+
+      astIrTupleList.foreach { case (ast, ir) =>
+        describe(s"when called by $ast") {
+          it(s"should generate $ir") {
+            val astTable = Table()
+            val irTable = Table()
+            val actual = MipsGenerator.generateStatement(ast, astTable)
+            val expect = ir(irTable)
+
+            assert(astTable.idList == List(AST.Ident("ident")))
+            assert(actual == expect)
+          }
+        }
+      }
+    }
+
+    describe("AST.DeclareFunction") {
+      type AstIrTupleGenerator = List[AST.Ident] => (Table => AST.DeclareFunction, Table => IR.DeclareFunction)
+      val astIrTupleList = List[AstIrTupleGenerator](
+        parameters => (
+          table => AST.DeclareFunction(AST.Ident("ident"), parameters, AST.Number(1), table),
+          table => IR.DeclareFunction(AST.Ident("ident"), parameters, IR.Number(1), table),
+        ),
+        parameters => (
+          table => AST.DeclareFunction(
+            AST.Ident("ident"),
+            parameters,
+            AST.IfExpression(AST.Number(1), AST.Number(2), AST.Number(3)),
+            table,
+          ),
+          table => IR.DeclareFunction(
+            AST.Ident("ident"),
+            parameters,
+            IR.IfExpression(IR.Number(1), IR.Number(2), IR.Number(3)), table
+          ),
+        ),
+      )
+
+      astIrTupleList.foreach { generator =>
+        val parameterPattern = List[List[AST.Ident]](
+          Nil,
+          List(AST.Ident("left"))
+        )
+
+        parameterPattern.foreach { parameterList =>
+          val astTable = Table()
+          val functionTable = Table()
+          val irTable = Table(parameterList)
+
+          val (ast, ir) = generator(parameterList)
+          val expect = ir(irTable)
+          val actual = MipsGenerator.generateStatement(ast(functionTable), astTable)
+
+          describe(s"when called by $ast with $parameterList") {
+            it(s"should generate $expect") {
+              assert(functionTable == irTable)
+              assert(actual == expect)
+            }
+          }
+        }
+      }
+    }
+
   }
 }
