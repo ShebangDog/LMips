@@ -10,6 +10,8 @@ object AST {
 
   case class DeclareValue(identity: Ident, expression: Expression) extends Statement
 
+  // FIXME: ASTにTable持たすべきではない気がする
+  // 消せるなら消す
   case class DeclareFunction(identity: Ident, paramList: List[AST.Ident], body: AST.Expression, table: Table = Table()) extends Statement
 
   sealed class Expression extends Node
