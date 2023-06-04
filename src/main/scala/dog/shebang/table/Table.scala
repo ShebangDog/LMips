@@ -9,7 +9,7 @@ import scala.collection.mutable.ListBuffer
 class Table(count: Int, registerList: List[AST.Ident]) {
   private val mutableIdList: mutable.ListBuffer[AST.Ident] = registerList.to(ListBuffer)
 
-  val idList: List[AST.Ident] = mutableIdList.toList
+  def idList: List[AST.Ident] = mutableIdList.toList
 
   def store(ident: AST.Ident): Unit = {
     println(s"store ${ident.name} count: $count")
@@ -29,6 +29,11 @@ class Table(count: Int, registerList: List[AST.Ident]) {
     }
   }
 
+
+  override def equals(obj: Any): Boolean = obj match {
+    case table: Table => table.idList == idList
+    case _ => false
+  }
 }
 
 object Table {
