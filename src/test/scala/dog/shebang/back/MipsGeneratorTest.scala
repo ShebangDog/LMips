@@ -15,8 +15,7 @@ class MipsGeneratorTest extends AnyFunSpec {
       (AST.Division, IR.Division),
       (AST.Equal, IR.Equal),
       (AST.NotEqual, IR.NotEqual),
-      //    TODO: GreaterThan用のIRをかく
-      //      (AST.GreaterThan, IR.GreaterThan),
+      (AST.GreaterThan, IR.GreaterThan),
       (AST.GreaterThanEqual, IR.GreaterThanEqual),
       (AST.LessThan, IR.LessThan),
       (AST.LessThanEqual, IR.LessThanEqual),
