@@ -181,7 +181,7 @@ object IR {
     override val destRegister: String = "$s0"
   }
 
-  case class MoreThan(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
+  case class GreaterThan(left: IR.Mips, right: IR.Mips) extends Arithmetic(left, right) {
     override val operand: String = "sgt"
     override val destRegister: String = "$s0"
   }

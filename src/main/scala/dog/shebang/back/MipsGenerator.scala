@@ -53,7 +53,7 @@ object MipsGenerator {
       case AST.Division(left, right) => IR.Division(generateExpr(left), generateExpr(right))
       case AST.Equal(left, right) => IR.Equal(generateExpr(left), generateExpr(right))
       case AST.NotEqual(left, right) => IR.NotEqual(generateExpr(left), generateExpr(right))
-      case AST.GreaterThan(left, right) => IR.MoreThan(generateExpr(left), generateExpr(right))
+      case AST.GreaterThan(left, right) => IR.GreaterThan(generateExpr(left), generateExpr(right))
       case AST.GreaterThanEqual(left, right) => IR.GreaterThanEqual(generateExpr(left), generateExpr(right))
       case AST.LessThan(left, right) => IR.LessThan(generateExpr(left), generateExpr(right))
       case AST.LessThanEqual(left, right) => IR.LessThanEqual(generateExpr(left), generateExpr(right))
